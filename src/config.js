@@ -6,6 +6,7 @@ export const REDIRECT_URI = (window.location.origin + window.location.pathname).
 export const SCOPES = [
   'user-read-playback-state',
   'user-read-currently-playing',
+  'user-modify-playback-state',
   'playlist-read-private',
   'user-read-private'
 ].join(' ');
