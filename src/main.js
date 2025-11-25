@@ -4,7 +4,7 @@ import {
 	handleRedirectCallback,
 	isAuthenticated,
 	logout,
-	getMe,
+	getUser,
 	getUserPlaylists,
 	getCurrentPlayback,
 	getPlaylistTracks
@@ -37,10 +37,10 @@ loginBtn.addEventListener('click', async () => {
 
 async function renderProfileAndData() {
 	try {
-		const me = await getMe();
-		displayName.textContent = me.display_name || me.id;
-		if (me.images && me.images.length) {
-			avatar.innerHTML = `<img src="${me.images[0].url}" alt="avatar" width="64" />`;
+		const user = await getUser();
+		displayName.textContent = user.display_name || user.id;
+		if (user.images && user.images.length) {
+			avatar.innerHTML = `<img src="${user.images[0].url}" alt="avatar" width="64" />`;
 		}
 
 		const playlists = await getUserPlaylists();

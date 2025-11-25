@@ -19,6 +19,7 @@ function base64UrlEncode(arrayBuffer) {
   for (let i = 0; i < bytes.byteLength; i++) {
     binary += String.fromCharCode(bytes[i]);
   }
+  // Convert to base64
   return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 }
 
@@ -140,8 +141,8 @@ async function ensureTokenValid() {
 }
 
 async function fetchWithToken(input, init = {}) {
-  const ok = await ensureTokenValid();
-  if (!ok) throw new Error('Not authenticated');
+  const validToken = await ensureTokenValid();
+  if (!validToken) throw new Error('Not authenticated');
   const auth = loadAuth();
   init.headers = Object.assign({}, init.headers, { Authorization: `Bearer ${auth.access_token}` });
   const resp = await fetch(input, init);
@@ -164,7 +165,7 @@ export function logout() {
   clearAuth();
 }
 
-export async function getMe() {
+export async function getUser() {
   const resp = await fetchWithToken('https://api.spotify.com/v1/me');
   if (!resp.ok) throw new Error('Failed to fetch profile');
   return resp.json();
