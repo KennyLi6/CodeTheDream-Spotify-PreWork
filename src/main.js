@@ -70,13 +70,17 @@ async function renderProfileAndData() {
 			btn.addEventListener('click', async (e) => {
 				const id = e.currentTarget.dataset.id;
 				const tracksResp = await getPlaylistTracks(id);
-				let list = '<h4>Tracks</h4><ol>';
+				let list = '<button id="back-btn" style="margin-bottom: 1rem; padding: 0.5rem 1rem;">← Back to Playlists</button>';
+				list += '<h4>Tracks</h4><ol>';
 				for (const t of tracksResp.items) {
 					const track = t.track;
 					list += `<li>${track.name} — ${track.artists.map(a=>a.name).join(', ')}</li>`;
 				}
 				list += '</ol>';
 				content.innerHTML = list;
+
+				// attach back button
+				document.getElementById('back-btn').addEventListener('click', renderProfileAndData);
 			});
 		});
 
