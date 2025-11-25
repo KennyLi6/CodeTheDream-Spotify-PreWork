@@ -30,4 +30,4 @@ jobs:
           folder: dist
           clean: true
           token: ${{ secrets.GITHUB_TOKEN }}
-          commit-message: Deploy site from GitHub Actions: ${{ github.sha }}
+          commit-message: "Deploy site from GitHub Actions: ${{ github.sha }}"
