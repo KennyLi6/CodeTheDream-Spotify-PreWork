@@ -189,3 +189,20 @@ export async function getCurrentPlayback() {
   if (!resp.ok) throw new Error('Failed to fetch currently playing');
   return resp.json();
 }
+
+export async function playPlayback() {
+  const resp = await fetchWithToken('https://api.spotify.com/v1/me/player/play', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({})
+  });
+  if (!resp.ok) throw new Error('Failed to play');
+}
+
+export async function pausePlayback() {
+  const resp = await fetchWithToken('https://api.spotify.com/v1/me/player/pause', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' }
+  });
+  if (!resp.ok) throw new Error('Failed to pause');
+}

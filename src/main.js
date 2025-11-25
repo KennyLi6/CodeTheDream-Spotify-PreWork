@@ -7,7 +7,9 @@ import {
 	getUser,
 	getUserPlaylists,
 	getCurrentPlayback,
-	getPlaylistTracks
+	getPlaylistTracks,
+	playPlayback,
+	pausePlayback
 } from './spotify.js';
 
 const loginBtn = document.getElementById('login-btn');
@@ -62,8 +64,39 @@ async function renderProfileAndData() {
 			html += `<strong>${item.name}</strong> — ${artists}`;
 			html += ` <em>on ${item.album.name}</em></div>`;
 		}
+		// Only show play/pause buttons if something is playing
+		if (now) {
+			html += `<div style="margin-top: 0.5rem;">`;
+			html += `<button id="play-btn" style="margin-right: 0.5rem; padding: 0.5rem 1rem;">▶ Play</button>`;
+			html += `<button id="pause-btn" style="padding: 0.5rem 1rem;">⏸ Pause</button>`;
+			html += `</div>`;
+		}
 
 		content.innerHTML = html;
+
+		// attach play/pause buttons
+		const playBtn = document.getElementById('play-btn');
+		const pauseBtn = document.getElementById('pause-btn');
+		if (playBtn) {
+			playBtn.addEventListener('click', async () => {
+				try {
+					await playPlayback();
+					console.log('Playback started');
+				} catch (err) {
+					console.error('Play failed:', err);
+				}
+			});
+		}
+		if (pauseBtn) {
+			pauseBtn.addEventListener('click', async () => {
+				try {
+					await pausePlayback();
+					console.log('Playback paused');
+				} catch (err) {
+					console.error('Pause failed:', err);
+				}
+			});
+		}
 
 		// attach playlist buttons
 		document.querySelectorAll('.playlist-btn').forEach(btn => {
