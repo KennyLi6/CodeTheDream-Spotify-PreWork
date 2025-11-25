@@ -63,7 +63,11 @@ export async function redirectToAuth() {
     scope: SCOPES
   });
 
-  window.location = `https://accounts.spotify.com/authorize?${params.toString()}`;
+  const url = `https://accounts.spotify.com/authorize?${params.toString()}`;
+  // helpful debug output when testing in the browser or on GitHub Pages
+  console.log('Redirecting to Spotify authorize URL:', url);
+  // perform the navigation
+  window.location.href = url;
 }
 
 export async function handleRedirectCallback() {
