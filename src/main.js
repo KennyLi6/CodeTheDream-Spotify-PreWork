@@ -12,23 +12,93 @@ import {
 	pausePlayback
 } from './spotify.js';
 
-const loginBtn = document.getElementById('login-btn');
-const displayName = document.getElementById('displayName');
-const avatar = document.getElementById('avatar');
-const content = document.getElementById('content');
+const LOGIN_BUTTON = document.getElementById('login-btn');
+const DISPLAY_NAME = document.getElementById('displayName');
+const AVATAR = document.getElementById('avatar');
+const CONTENT = document.getElementById('content');
+const POLLING_TIME = 10000; // 10 seconds
+
+let playbackPollId = null;
+
+// update only the "now playing" UI fragment
+async function updateNowPlaying() {
+  try {
+    const now = await getCurrentPlayback();
+    // Ensure an element exists to hold the currently playing info
+    let playingElement = document.getElementById('now-playing');
+    if (!playingElement) {
+      playingElement = document.createElement('div');
+      playingElement.id = 'now-playing';
+      CONTENT.prepend(playingElement);
+    }
+
+    if (!now) {
+      playingElement.innerHTML = '<p>Nothing is currently playing.</p>';
+      return;
+    }
+
+    const item = now.item;
+    const artists = (item.artists || []).map(a => a.name).join(', ');
+    const image = item.album?.images?.[2]?.url || item.album?.images?.[0]?.url || '';
+    playingElement.innerHTML = `
+      <div style="display:flex;align-items:center;gap:.5rem">
+        ${image ? `<img src="${image}" width="64" alt="album art">` : ''}
+        <div>
+          <div><strong>${item.name}</strong></div>
+          <div style="font-size:.9rem;color:#666">${artists} — <em>${item.album?.name || ''}</em></div>
+        </div>
+      </div>
+    `;
+  } catch (err) {
+    console.error('updateNowPlaying error', err);
+    // Keep polling but consider backing off on repeated failures
+  }
+}
+
+function startPlaybackPolling(interval = POLLING_TIME) {
+  // clear any existing
+  stopPlaybackPolling();
+  let playbackPollInterval = interval;
+  // run immediately then schedule
+  updateNowPlaying();
+  playbackPollId = setInterval(() => {
+    // only poll if authenticated and page visible
+    if (isAuthenticated() && !document.hidden) {
+      updateNowPlaying();
+    }
+  }, playbackPollInterval);
+
+  // pause polling on visibility change (optional extra safety)
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      // page hidden -> don't spam requests
+      // we leave interval running but skip when hidden; alternatively clearInterval here
+    } else {
+      // page became visible -> do immediate update
+      if (isAuthenticated()) updateNowPlaying();
+    }
+  }, { once: false });
+}
+
+function stopPlaybackPolling() {
+  if (playbackPollId) {
+    clearInterval(playbackPollId);
+    playbackPollId = null;
+  }
+}
 
 function setLoggedOutUI() {
-	displayName.textContent = '';
-	avatar.innerHTML = '';
-	loginBtn.textContent = 'Login with Spotify';
-	content.innerHTML = '<p>Please log in to see your playlists and current track.</p>';
+	DISPLAY_NAME.textContent = '';
+	AVATAR.innerHTML = '';
+	LOGIN_BUTTON.textContent = 'Login with Spotify';
+	CONTENT.innerHTML = '<p>Please log in to see your playlists and current track.</p>';
 }
 
 function setLoggedInUI() {
-	loginBtn.textContent = 'Logout';
+	LOGIN_BUTTON.textContent = 'Logout';
 }
 
-loginBtn.addEventListener('click', async () => {
+LOGIN_BUTTON.addEventListener('click', async () => {
 	if (isAuthenticated()) {
 		logout();
 		setLoggedOutUI();
@@ -40,9 +110,9 @@ loginBtn.addEventListener('click', async () => {
 async function renderProfileAndData() {
 	try {
 		const user = await getUser();
-		displayName.textContent = user.display_name || user.id;
+		DISPLAY_NAME.textContent = user.display_name || user.id;
 		if (user.images && user.images.length) {
-			avatar.innerHTML = `<img src="${user.images[0].url}" alt="avatar" width="64" />`;
+			AVATAR.innerHTML = `<img src="${user.images[0].url}" alt="avatar" width="64" />`;
 		}
 
 		const playlists = await getUserPlaylists();
@@ -54,25 +124,25 @@ async function renderProfileAndData() {
 		html += '</ul>';
 
 		html += '<h3>Currently Playing</h3>';
-		const now = await getCurrentPlayback();
-		if (!now) {
+		const currentPlayback = await getCurrentPlayback();
+		if (!currentPlayback) {
 			html += '<p>Nothing is currently playing.</p>';
 		} else {
-			const item = now.item;
+			const item = currentPlayback.item;
 			const artists = item.artists.map(a => a.name).join(', ');
 			html += `<div><img src="${item.album.images[2]?.url || item.album.images[0].url}" width="64" />`;
 			html += `<strong>${item.name}</strong> — ${artists}`;
 			html += ` <em>on ${item.album.name}</em></div>`;
 		}
 		// Only show play/pause buttons if something is playing
-		if (now) {
+		if (currentPlayback) {
 			html += `<div style="margin-top: 0.5rem;">`;
 			html += `<button id="play-btn" style="margin-right: 0.5rem; padding: 0.5rem 1rem;">▶ Play</button>`;
 			html += `<button id="pause-btn" style="padding: 0.5rem 1rem;">⏸ Pause</button>`;
 			html += `</div>`;
 		}
 
-		content.innerHTML = html;
+		CONTENT.innerHTML = html;
 
 		// attach play/pause buttons
 		const playBtn = document.getElementById('play-btn');
@@ -98,6 +168,8 @@ async function renderProfileAndData() {
 			});
 		}
 
+		// TODO: Add previous/next buttons maybe a progress bar?
+
 		// attach playlist buttons
 		document.querySelectorAll('.playlist-btn').forEach(btn => {
 			btn.addEventListener('click', async (e) => {
@@ -110,7 +182,7 @@ async function renderProfileAndData() {
 					list += `<li>${track.name} — ${track.artists.map(a=>a.name).join(', ')}</li>`;
 				}
 				list += '</ol>';
-				content.innerHTML = list;
+				CONTENT.innerHTML = list;
 
 				// attach back button
 				document.getElementById('back-btn').addEventListener('click', renderProfileAndData);
@@ -118,6 +190,7 @@ async function renderProfileAndData() {
 		});
 
 		setLoggedInUI();
+		startPlaybackPolling(POLLING_TIME);
 	} catch (err) {
 		console.error(err);
 		setLoggedOutUI();
