@@ -206,3 +206,17 @@ export async function pausePlayback() {
   });
   if (!resp.ok) throw new Error('Failed to pause');
 }
+
+export async function nextPlayback() {
+  const resp = await fetchWithToken('https://api.spotify.com/v1/me/player/next', {
+    method: 'POST'
+  });
+  if (!resp.ok) throw new Error('Failed to skip to next track');
+}
+
+export async function previousPlayback() {
+  const resp = await fetchWithToken('https://api.spotify.com/v1/me/player/previous', {
+    method: 'POST'
+  });
+  if (!resp.ok) throw new Error('Failed to skip to previous track');
+}

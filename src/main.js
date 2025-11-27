@@ -9,7 +9,9 @@ import {
 	getCurrentPlayback,
 	getPlaylistTracks,
 	playPlayback,
-	pausePlayback
+	pausePlayback,
+	nextPlayback,
+	previousPlayback
 } from './spotify.js';
 
 const LOGIN_BUTTON = document.getElementById('login-btn');
@@ -49,14 +51,18 @@ async function updateNowPlaying() {
 				</div>
 			</div>
 			<div style="margin-top: 0.5rem;">
+				<button id="prev-btn" style="margin-right: 0.5rem; padding: 0.5rem 1rem;">⏮ Prev</button>
 				<button id="play-btn" style="margin-right: 0.5rem; padding: 0.5rem 1rem;">▶ Play</button>
-				<button id="pause-btn" style="padding: 0.5rem 1rem;">⏸ Pause</button>
+				<button id="pause-btn" style="margin-right: 0.5rem; padding: 0.5rem 1rem;">⏸ Pause</button>
+				<button id="next-btn" style="padding: 0.5rem 1rem;">⏭ Next</button>
 			</div>
 		`;
 
 		// attach play/pause listeners inside the same now-playing element
 		const playBtn = currentPlayback.querySelector('#play-btn');
 		const pauseBtn = currentPlayback.querySelector('#pause-btn');
+		const nextBtn = currentPlayback.querySelector('#next-btn');
+		const prevBtn = currentPlayback.querySelector('#prev-btn');
 		if (playBtn) {
 			playBtn.onclick = async () => {
 				try {
@@ -76,6 +82,29 @@ async function updateNowPlaying() {
 					await updateNowPlaying();
 				} catch (err) {
 					console.error('Pause failed:', err);
+				}
+			};
+		}
+		if (nextBtn) {
+			nextBtn.onclick = async () => {
+				try {
+					await nextPlayback();
+					console.log('Skipped to next');
+					// small delay to allow playback state to change on Spotify's side
+					setTimeout(updateNowPlaying, 600);
+				} catch (err) {
+					console.error('Next failed:', err);
+				}
+			};
+		}
+		if (prevBtn) {
+			prevBtn.onclick = async () => {
+				try {
+					await previousPlayback();
+					console.log('Skipped to previous');
+					setTimeout(updateNowPlaying, 600);
+				} catch (err) {
+					console.error('Previous failed:', err);
 				}
 			};
 		}
