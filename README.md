@@ -10,3 +10,9 @@ and information about favorite songs of mine.
 
 This plan is subject to change if I learn that the Spotify API is not 
 capable of certain functions.  
+
+## To Use
+
+Contact me at kennyli3219@gmail.com with details of your Spotify 
+account email so that I can add you as a authorized user in the 
+Spotify Development App.
