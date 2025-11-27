@@ -209,14 +209,16 @@ export async function pausePlayback() {
 
 export async function nextPlayback() {
   const resp = await fetchWithToken('https://api.spotify.com/v1/me/player/next', {
-    method: 'POST'
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' }
   });
   if (!resp.ok) throw new Error('Failed to skip to next track');
 }
 
 export async function previousPlayback() {
   const resp = await fetchWithToken('https://api.spotify.com/v1/me/player/previous', {
-    method: 'POST'
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' }
   });
   if (!resp.ok) throw new Error('Failed to skip to previous track');
 }

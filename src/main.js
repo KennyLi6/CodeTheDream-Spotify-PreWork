@@ -25,6 +25,7 @@ let playbackPollId = null;
 // update only the "now playing" UI fragment
 async function updateNowPlaying() {
   try {
+	console.log('Updating now playing info...');
     const now = await getCurrentPlayback();
     // Ensure an element exists to hold the currently playing info
     let currentPlayback = document.getElementById('now-playing');
@@ -186,8 +187,6 @@ async function renderProfileAndData() {
 		CONTENT.innerHTML = html;
 		// render now-playing into the centralized element
 		await updateNowPlaying();
-
-		// TODO: Add previous/next buttons maybe a progress bar?
 
 		// attach playlist buttons
 		document.querySelectorAll('.playlist-btn').forEach(btn => {
