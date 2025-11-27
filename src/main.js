@@ -23,24 +23,19 @@ let playbackPollId = null;
 // update only the "now playing" UI fragment
 async function updateNowPlaying() {
   try {
-    const now = await getCurrentPlayback();
+    const playing = await getCurrentPlayback();
     // Ensure an element exists to hold the currently playing info
-    let playingElement = document.getElementById('now-playing');
-    if (!playingElement) {
-      playingElement = document.createElement('div');
-      playingElement.id = 'now-playing';
-      CONTENT.prepend(playingElement);
-    }
+    let currentPlayback = document.getElementById('now-playing');
 
-    if (!now) {
-		playingElement.innerHTML = '<p>Nothing is currently playing.</p>';
+    if (!playing) {
+		currentPlayback.innerHTML = '<p>Nothing is currently playing.</p>';
       return;
     }
 
-    const item = now.item;
+    const item = playing.item;
     const artists = (item.artists || []).map(a => a.name).join(', ');
     const image = item.album?.images?.[2]?.url || item.album?.images?.[0]?.url || '';
-		playingElement.innerHTML = `
+		currentPlayback.innerHTML = `
 			<div style="display:flex;align-items:center;gap:.5rem">
 				${image ? `<img src="${image}" width="64" alt="album art">` : ''}
 				<div>
@@ -55,8 +50,8 @@ async function updateNowPlaying() {
 		`;
 
 		// attach play/pause listeners inside the same now-playing element
-		const playBtn = playingElement.querySelector('#play-btn');
-		const pauseBtn = playingElement.querySelector('#pause-btn');
+		const playBtn = currentPlayback.querySelector('#play-btn');
+		const pauseBtn = currentPlayback.querySelector('#pause-btn');
 		if (playBtn) {
 			playBtn.onclick = async () => {
 				try {
