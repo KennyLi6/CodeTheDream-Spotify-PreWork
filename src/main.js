@@ -23,16 +23,21 @@ let playbackPollId = null;
 // update only the "now playing" UI fragment
 async function updateNowPlaying() {
   try {
-    const playing = await getCurrentPlayback();
+    const now = await getCurrentPlayback();
     // Ensure an element exists to hold the currently playing info
     let currentPlayback = document.getElementById('now-playing');
+    if (!currentPlayback) {
+      currentPlayback = document.createElement('div');
+      currentPlayback.id = 'now-playing';
+      CONTENT.prepend(currentPlayback);
+    }
 
-    if (!playing) {
+    if (!now) {
 		currentPlayback.innerHTML = '<p>Nothing is currently playing.</p>';
       return;
     }
 
-    const item = playing.item;
+    const item = now.item;
     const artists = (item.artists || []).map(a => a.name).join(', ');
     const image = item.album?.images?.[2]?.url || item.album?.images?.[0]?.url || '';
 		currentPlayback.innerHTML = `
