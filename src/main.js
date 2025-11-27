@@ -29,7 +29,7 @@ async function updateNowPlaying() {
     if (!currentPlayback) {
       currentPlayback = document.createElement('div');
       currentPlayback.id = 'now-playing';
-      CONTENT.prepend(currentPlayback);
+      CONTENT.append(currentPlayback);
     }
 
     if (!now) {
