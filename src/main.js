@@ -33,22 +33,52 @@ async function updateNowPlaying() {
     }
 
     if (!now) {
-      playingElement.innerHTML = '<p>Nothing is currently playing.</p>';
+		playingElement.innerHTML = '<p>Nothing is currently playing.</p>';
       return;
     }
 
     const item = now.item;
     const artists = (item.artists || []).map(a => a.name).join(', ');
     const image = item.album?.images?.[2]?.url || item.album?.images?.[0]?.url || '';
-    playingElement.innerHTML = `
-      <div style="display:flex;align-items:center;gap:.5rem">
-        ${image ? `<img src="${image}" width="64" alt="album art">` : ''}
-        <div>
-          <div><strong>${item.name}</strong></div>
-          <div style="font-size:.9rem;color:#666">${artists} — <em>${item.album?.name || ''}</em></div>
-        </div>
-      </div>
-    `;
+		playingElement.innerHTML = `
+			<div style="display:flex;align-items:center;gap:.5rem">
+				${image ? `<img src="${image}" width="64" alt="album art">` : ''}
+				<div>
+					<div><strong>${item.name}</strong></div>
+					<div style="font-size:.9rem;color:#666">${artists} — <em>${item.album?.name || ''}</em></div>
+				</div>
+			</div>
+			<div style="margin-top: 0.5rem;">
+				<button id="play-btn" style="margin-right: 0.5rem; padding: 0.5rem 1rem;">▶ Play</button>
+				<button id="pause-btn" style="padding: 0.5rem 1rem;">⏸ Pause</button>
+			</div>
+		`;
+
+		// attach play/pause listeners inside the same now-playing element
+		const playBtn = playingElement.querySelector('#play-btn');
+		const pauseBtn = playingElement.querySelector('#pause-btn');
+		if (playBtn) {
+			playBtn.onclick = async () => {
+				try {
+					await playPlayback();
+					console.log('Playback started');
+					await updateNowPlaying();
+				} catch (err) {
+					console.error('Play failed:', err);
+				}
+			};
+		}
+		if (pauseBtn) {
+			pauseBtn.onclick = async () => {
+				try {
+					await pausePlayback();
+					console.log('Playback paused');
+					await updateNowPlaying();
+				} catch (err) {
+					console.error('Pause failed:', err);
+				}
+			};
+		}
   } catch (err) {
     console.error('updateNowPlaying error', err);
     // Keep polling but consider backing off on repeated failures
@@ -72,7 +102,7 @@ function startPlaybackPolling(interval = POLLING_TIME) {
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) {
       // page hidden -> don't spam requests
-      // we leave interval running but skip when hidden; alternatively clearInterval here
+      // we leave interval running but skip when hidden
     } else {
       // page became visible -> do immediate update
       if (isAuthenticated()) updateNowPlaying();
@@ -124,49 +154,9 @@ async function renderProfileAndData() {
 		html += '</ul>';
 
 		html += '<h3>Currently Playing</h3>';
-		const currentPlayback = await getCurrentPlayback();
-		if (!currentPlayback) {
-			html += '<p>Nothing is currently playing.</p>';
-		} else {
-			const item = currentPlayback.item;
-			const artists = item.artists.map(a => a.name).join(', ');
-			html += `<div><img src="${item.album.images[2]?.url || item.album.images[0].url}" width="64" />`;
-			html += `<strong>${item.name}</strong> — ${artists}`;
-			html += ` <em>on ${item.album.name}</em></div>`;
-		}
-		// Only show play/pause buttons if something is playing
-		if (currentPlayback) {
-			html += `<div style="margin-top: 0.5rem;">`;
-			html += `<button id="play-btn" style="margin-right: 0.5rem; padding: 0.5rem 1rem;">▶ Play</button>`;
-			html += `<button id="pause-btn" style="padding: 0.5rem 1rem;">⏸ Pause</button>`;
-			html += `</div>`;
-		}
-
 		CONTENT.innerHTML = html;
-
-		// attach play/pause buttons
-		const playBtn = document.getElementById('play-btn');
-		const pauseBtn = document.getElementById('pause-btn');
-		if (playBtn) {
-			playBtn.addEventListener('click', async () => {
-				try {
-					await playPlayback();
-					console.log('Playback started');
-				} catch (err) {
-					console.error('Play failed:', err);
-				}
-			});
-		}
-		if (pauseBtn) {
-			pauseBtn.addEventListener('click', async () => {
-				try {
-					await pausePlayback();
-					console.log('Playback paused');
-				} catch (err) {
-					console.error('Pause failed:', err);
-				}
-			});
-		}
+		// render now-playing into the centralized element
+		await updateNowPlaying();
 
 		// TODO: Add previous/next buttons maybe a progress bar?
 
