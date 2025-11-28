@@ -26,7 +26,7 @@ let playbackPollId = null;
 async function updateNowPlaying() {
   try {
 	console.log('Updating now playing info...');
-    const now = await getCurrentPlayback();
+    const playing = await getCurrentPlayback();
     // Ensure an element exists to hold the currently playing info
     let currentPlayback = document.getElementById('now-playing');
     if (!currentPlayback) {
@@ -35,13 +35,13 @@ async function updateNowPlaying() {
       CONTENT.append(currentPlayback);
     }
 
-    if (!now) {
+    if (!playing) {
 		currentPlayback.innerHTML = '<p>Nothing is currently playing.</p>';
       return;
     }
 
-    const item = now.item;
-    const artists = (item.artists || []).map(a => a.name).join(', ');
+    const item = playing.item;
+    const artists = (item.artists || []).map(artist => artist.name).join(', ');
     const image = item.album?.images?.[2]?.url || item.album?.images?.[0]?.url || '';
 		currentPlayback.innerHTML = `
 			<div style="display:flex;align-items:center;gap:.5rem">
@@ -180,8 +180,8 @@ async function renderProfileAndData() {
 		const playlists = await getUserPlaylists();
 		let html = '<h3>Your Playlists</h3>';
 		html += '<ul>';
-		for (const p of playlists.items) {
-			html += `<li><button data-id="${p.id}" class="playlist-btn">${p.name} (${p.tracks.total})</button></li>`;
+		for (const song of playlists.items) {
+			html += `<li><button data-id="${song.id}" class="playlist-btn">${song.name} (${song.tracks.total})</button></li>`;
 		}
 		html += '</ul>';
 
@@ -197,9 +197,9 @@ async function renderProfileAndData() {
 				const tracksResp = await getPlaylistTracks(id);
 				let list = '<button id="back-btn" style="margin-bottom: 1rem; padding: 0.5rem 1rem;">← Back to Playlists</button>';
 				list += '<h4>Tracks</h4><ol>';
-				for (const t of tracksResp.items) {
-					const track = t.track;
-					list += `<li>${track.name} — ${track.artists.map(a=>a.name).join(', ')}</li>`;
+				for (const item of tracksResp.items) {
+					const track = item.track;
+					list += `<li>${track.name} — ${track.artists.map(artist=>artist.name).join(', ')}</li>`;
 				}
 				list += '</ol>';
 				CONTENT.innerHTML = list;
