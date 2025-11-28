@@ -193,8 +193,7 @@ export async function getCurrentPlayback() {
 export async function playPlayback() {
   const resp = await fetchWithToken('https://api.spotify.com/v1/me/player/play', {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({})
+    headers: { 'Content-Type': 'application/json' }
   });
   if (!resp.ok) throw new Error('Failed to play');
 }
