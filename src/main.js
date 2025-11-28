@@ -93,6 +93,7 @@ async function updateNowPlaying() {
 					console.log('Skipped to next');
 					// small delay to allow playback state to change on Spotify's side
 					setTimeout(updateNowPlaying, 600);
+					await updateNowPlaying();
 				} catch (err) {
 					console.error('Next failed:', err);
 				}
@@ -104,6 +105,7 @@ async function updateNowPlaying() {
 					await previousPlayback();
 					console.log('Skipped to previous');
 					setTimeout(updateNowPlaying, 600);
+					await updateNowPlaying();
 				} catch (err) {
 					console.error('Previous failed:', err);
 				}
